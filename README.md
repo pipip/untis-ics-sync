@@ -8,6 +8,7 @@ Serves a calendar API (ICS) for events provided from Untis.
 
 ## Fixes in this repo
 - Fix "Doppelstunden" (make sure start is before end time)
+- Add cancelled status to events
 
 
 ## Use case
