@@ -6,6 +6,9 @@ Serves a calendar API (ICS) for events provided from Untis.
 
 ![Banner](.github/assets/banner.jpg)
 
+## Fixes in this repo
+- Fix "Doppelstunden" (make sure Start is before Ende)
+
 
 ## Use case
 
