@@ -44,7 +44,8 @@ export class LessonsService {
           if (
             last &&
             last.lsnumber === curr.lsnumber &&
-            last.date === curr.date
+            last.date === curr.date &&
+            last.endTime === curr.startTime
           ) {
             last.endTime = curr.endTime;
             return acc;
