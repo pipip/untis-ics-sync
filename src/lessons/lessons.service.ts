@@ -3,6 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { createEvents, EventAttributes } from 'ics';
 import { Lesson, ShortData, WebUntis } from 'webuntis';
 
+private toMinutes(time: number): number {
+  return Math.floor(time / 100) * 60 + (time % 100);
+}
+
 export interface LessonsOptions {
   includedSubjects?: number[];
   excludedSubjects?: number[];
@@ -41,11 +45,17 @@ export class LessonsService {
         )
         .reduce((acc, curr) => {
           const last = acc[acc.length - 1];
+          const gap = last
+            ? this.toMinutes(curr.startTime) - this.toMinutes(last.endTime)
+            : null;
+
           if (
             last &&
             last.lsnumber === curr.lsnumber &&
             last.date === curr.date &&
-            last.endTime === curr.startTime
+            gap !== null &&
+            gap >= 0 &&
+            gap <= 5   // Toleranz: bis zu 5 Minuten Pause werden noch zusammengefasst
           ) {
             last.endTime = curr.endTime;
             return acc;
