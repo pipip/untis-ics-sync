@@ -53,9 +53,10 @@ export class LessonsService {
             last &&
             last.lsnumber === curr.lsnumber &&
             last.date === curr.date &&
+            last.code === curr.code && // do not merge cancelled events
             gap !== null &&
             gap >= 0 &&
-            gap <= 5   // Toleranz: bis zu 5 Minuten Pause werden noch zusammengefasst
+            gap <= 5   // Toleranz 5 Min
           ) {
             last.endTime = curr.endTime;
             return acc;
@@ -79,17 +80,22 @@ export class LessonsService {
           end: WebUntis.convertUntisTime(l.endTime, l.date),
         }))
         .map(
-          (l) =>
-            ({
+          (l) => {
+            const prefix = l.code === 'cancelled' ? '❌ ' : l.code === 'irregular' ? '⚠️ ' : '';
+
+            return {
               uid: l.id.toString(),
               title:
-                (l.lstext
+                prefix +
+                ((l.lstext
                   ? `${l.su?.map((s) => s.longname).join(', ')} (${l.lstext})`
                   : l.su?.map((s) => s.longname).join(', ')) ??
-                'Unnamed lesson',
+                  'Unnamed lesson'),
 
               description: this.buildDescription(l),
               location: this.buildLocation(l),
+
+              status: l.code === 'cancelled' ? 'CANCELLED' : undefined,
 
               alarms: alarms?.map((minutes) => ({
                 trigger: {
@@ -106,7 +112,8 @@ export class LessonsService {
               end: this.convertDate(l.end, offset),
               endInputType: 'local',
               endOutputType: 'utc',
-            }) as EventAttributes,
+            } as EventAttributes;
+          },
         )
         .concat([this.createMaintenanceEvent()])
         .filter((e) => e),
