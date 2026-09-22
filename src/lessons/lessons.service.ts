@@ -3,10 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { createEvents, EventAttributes } from 'ics';
 import { Lesson, ShortData, WebUntis } from 'webuntis';
 
-private toMinutes(time: number): number {
-  return Math.floor(time / 100) * 60 + (time % 100);
-}
-
 export interface LessonsOptions {
   includedSubjects?: number[];
   excludedSubjects?: number[];
@@ -19,6 +15,10 @@ export class LessonsService {
   private readonly logger: Logger = new Logger(LessonsService.name);
 
   constructor(private readonly configService: ConfigService) {}
+
+  private toMinutes(time: number): number {
+    return Math.floor(time / 100) * 60 + (time % 100);
+  }
 
   convertDate(date: Date, offset = 0) {
     return [
