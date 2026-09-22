@@ -16,41 +16,9 @@ Some schools, universities, or workspaces do not enable the iCalendar API that U
 
 ## Installation
 
-### Using Docker
+## Using Docker
 
 To deploy a quick Docker environment, fill in the target school credentials in `docker-compose.yml` and start the service by running `docker compose up -d`. Do note that if you'd like to use SSL, add any reverse proxy such as Nginx, Caddy or Traefik. View the table below for all possible environment variables.
-
-### Using NixOS
-
-Firstly add this repository to your flake's inputs.
-```nix
-{
-  inputs = {
-    # ...
-    untis-ics-sync.url = "github:bddvlpr/untis-ics-sync/<rev/version>";
-    untis-ics-sync.inputs.nixpkgs.follows = "nixpkgs";
-  };
-
-  # ...
-}
-```
-
-Secondly, enable the service. Please **DO NOT** use a writeText derivation as this will add your credentials to the Nix store. Use agenix or nix-sops. A local Redis service will automatically be started.
-```nix
-{
-  inputs,
-  ...
-}: {
-  imports = [
-    inputs.untis-ics-sync.nixosModules.default
-  ];
-
-  services.untis-ics-sync = {
-    enable = true;
-    envFile = ./; # Path to your credentials.
-  };
-}
-```
 
 ## Environment
 | Name | Type | Default | Description |
@@ -68,3 +36,22 @@ Secondly, enable the service. Please **DO NOT** use a writeText derivation as th
 | MAINTENANCE_LOCATION | string | `null` | Maintenance notification location. |
 | LESSONS_TIMETABLE_BEFORE | number | 7 | The amount of days to fetch before today. |
 | LESSONS_TIMETABLE_AFTER | number | 14 | The amount of days to fetch after today. |
+
+## API Documentation
+
+Interactive API docs: http://localhost:3000/swagger
+
+### Endpoints
+ - GET /classes - List all classes
+ - GET /classes/:classId - Get specific class
+ - GET /subjects - List all subjects
+ - GET /lessons/:classId - Get lessons (JSON)
+ - GET /lessons/:classId/ics - Get ICS calendar file
+        Query params: includedSubjects, excludedSubjects, alarms, offset
+ - GET /holidays - Get holidays (ICS)
+
+### Example
+
+GET your relevant classId via /classes
+
+Subscribe in your calendar app using: http://your-server:3000/lessons/{classId}/ics
