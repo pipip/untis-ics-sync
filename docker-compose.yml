@@ -14,6 +14,8 @@ services:
       BULL_REDIS_PORT: 6379
     ports:
       - 3000:3000
+    networks:
+      - untis
     depends_on:
       - redis
 
@@ -23,6 +25,12 @@ services:
     command: redis-server
     volumes:
       - redis-data:/data
+    networks:
+      - untis
 
 volumes:
   redis-data:
+
+networks:
+  untis:
+    external: false
