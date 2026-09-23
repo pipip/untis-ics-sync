@@ -63,7 +63,15 @@ export class NotificationsService implements OnApplicationBootstrap {
     }
 
     for (const classId of classIds) {
-      await this.checkClass(classId);
+      try {
+        await this.checkClass(classId);
+      } catch (e) {
+        this.logger.error(`Check für Klasse ${classId} fehlgeschlagen: ${e}`);
+        await this.ntfyService.send(
+          '⚠️ untis-ics-sync: Check fehlgeschlagen',
+          `Klasse ${classId}: ${e instanceof Error ? e.message : e}`,
+        );
+      }
     }
   }
 
