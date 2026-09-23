@@ -12,7 +12,9 @@ export class NtfyService {
     const token = this.configService.get<string>('NTFY_TOKEN');
 
     if (!url) {
-      this.logger.warn('NTFY_URL ist nicht gesetzt, überspringe Benachrichtigung.');
+      this.logger.warn(
+        'NTFY_URL ist nicht gesetzt, überspringe Benachrichtigung.',
+      );
       return;
     }
 

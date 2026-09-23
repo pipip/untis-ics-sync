@@ -33,7 +33,9 @@ export class NotificationsService implements OnApplicationBootstrap {
     const classIds = this.getConfiguredClassIds();
 
     if (classIds.length === 0) {
-      this.logger.debug('NOTIFY_CLASS_IDS ist nicht gesetzt, überspringe Check.');
+      this.logger.debug(
+        'NOTIFY_CLASS_IDS ist nicht gesetzt, überspringe Check.',
+      );
       return;
     }
 
@@ -51,10 +53,17 @@ export class NotificationsService implements OnApplicationBootstrap {
   }
 
   private async checkClass(classId: number) {
-    const before = this.configService.get<number>('LESSONS_TIMETABLE_BEFORE', 7);
+    const before = this.configService.get<number>(
+      'LESSONS_TIMETABLE_BEFORE',
+      7,
+    );
     const after = this.configService.get<number>('LESSONS_TIMETABLE_AFTER', 14);
 
-    const lessons = await this.untisService.fetchTimetable(before, after, classId);
+    const lessons = await this.untisService.fetchTimetable(
+      before,
+      after,
+      classId,
+    );
 
     const previous = this.previousState.get(classId) ?? new Map();
     const current = new Map<number, string | undefined>();
@@ -68,8 +77,11 @@ export class NotificationsService implements OnApplicationBootstrap {
       // Nur benachrichtigen, wenn wir den Termin vorher schon kannten (nicht beim ersten Lauf)
       // UND er neu von "nicht abgesagt" auf "abgesagt" gewechselt ist.
       if (isCancelled && !wasCancelled && previous.has(lesson.id)) {
-        const subject = lesson.su?.map((s) => s.longname).join(', ') ?? 'Unterricht';
-        const date = moment(lesson.date.toString(), 'YYYYMMDD').format('DD.MM.YYYY');
+        const subject =
+          lesson.su?.map((s) => s.longname).join(', ') ?? 'Unterricht';
+        const date = moment(lesson.date.toString(), 'YYYYMMDD').format(
+          'DD.MM.YYYY',
+        );
         const t = String(lesson.startTime).padStart(4, '0');
         const time = `${t.slice(0, -2)}:${t.slice(-2)}`;
 
