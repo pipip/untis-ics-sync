@@ -6,11 +6,17 @@ import * as moment from 'moment';
 import { UntisService } from 'src/untis/untis.service';
 import { NtfyService } from './ntfy.service';
 
+interface LessonSnapshot {
+  code?: string;
+  rooms: string;
+  title: string;
+}
+
 @Injectable()
 export class NotificationsService implements OnApplicationBootstrap {
   private readonly logger = new Logger(NotificationsService.name);
 
-  private previousState = new Map<number, Map<number, string | undefined>>();
+  private previousState = new Map<number, Map<number, LessonSnapshot>>();
 
   constructor(
     private readonly configService: ConfigService,
@@ -26,8 +32,8 @@ export class NotificationsService implements OnApplicationBootstrap {
     await this.ntfyService.send(
       '✅ untis-ics-sync gestartet',
       classIds.length > 0
-        ? `Service läuft, Absagen-Check aktiv für Klasse(n): ${classIds.join(', ')}.`
-        : `Service läuft, aber NOTIFY_CLASS_IDS ist nicht gesetzt – kein Absagen-Check aktiv.`,
+        ? `Service läuft, Absagen-/Änderungs-Check aktiv für Klasse(n): ${classIds.join(', ')}.`
+        : `Service läuft, aber NOTIFY_CLASS_IDS ist nicht gesetzt – kein Check aktiv.`,
     );
   }
 
@@ -42,11 +48,10 @@ export class NotificationsService implements OnApplicationBootstrap {
     );
     const endHour = this.configService.get<number>('NOTIFY_CHECK_END_HOUR', 22);
 
-    // Minute Stunde Tag Monat Wochentag
     const cronExpression = `*/${intervalMinutes} ${startHour}-${endHour} * * *`;
 
     this.logger.log(
-      `Registriere Absagen-Check: alle ${intervalMinutes} Min., ${startHour}:00–${endHour}:00 Uhr (Cron: "${cronExpression}")`,
+      `Registriere Check: alle ${intervalMinutes} Min., ${startHour}:00–${endHour}:00 Uhr (Cron: "${cronExpression}")`,
     );
 
     const job = new CronJob(cronExpression, () => this.checkForCancellations());
@@ -77,12 +82,32 @@ export class NotificationsService implements OnApplicationBootstrap {
       .filter((id) => !isNaN(id));
   }
 
+  private isEnabled(key: string, defaultValue = true): boolean {
+    const value = this.configService.get<string>(key);
+    if (value === undefined) return defaultValue;
+    return value.toLowerCase() === 'true';
+  }
+
+  private buildTitle(lesson: any): string {
+    return lesson.lstext
+      ? `${lesson.su?.map((s) => s.longname).join(', ')} (${lesson.lstext})`
+      : (lesson.su?.map((s) => s.longname).join(', ') ?? 'Unbenannte Stunde');
+  }
+
+  private buildRooms(lesson: any): string {
+    return lesson.ro?.map((r) => r.longname).join(', ') ?? '';
+  }
+
   private async checkClass(classId: number) {
     const before = this.configService.get<number>(
       'LESSONS_TIMETABLE_BEFORE',
       7,
     );
     const after = this.configService.get<number>('LESSONS_TIMETABLE_AFTER', 14);
+
+    const notifyOnCancel = this.isEnabled('NOTIFY_ON_CANCEL');
+    const notifyOnRoomChange = this.isEnabled('NOTIFY_ON_ROOM_CHANGE');
+    const notifyOnTitleChange = this.isEnabled('NOTIFY_ON_TITLE_CHANGE');
 
     const lessons = await this.untisService.fetchTimetable(
       before,
@@ -91,29 +116,55 @@ export class NotificationsService implements OnApplicationBootstrap {
     );
 
     const previous = this.previousState.get(classId) ?? new Map();
-    const current = new Map<number, string | undefined>();
+    const current = new Map<number, LessonSnapshot>();
 
     for (const lesson of lessons) {
-      current.set(lesson.id, lesson.code);
+      const snapshot: LessonSnapshot = {
+        code: lesson.code,
+        rooms: this.buildRooms(lesson),
+        title: this.buildTitle(lesson),
+      };
+      current.set(lesson.id, snapshot);
 
-      const wasCancelled = previous.get(lesson.id) === 'cancelled';
-      const isCancelled = lesson.code === 'cancelled';
+      const prev = previous.get(lesson.id);
+      if (!prev) {
+        // Erster bekannter Zustand für diese Lesson -> keine Vergleichsbasis, nichts melden
+        continue;
+      }
 
-      // Nur benachrichtigen, wenn wir den Termin vorher schon kannten (nicht beim ersten Lauf)
-      // UND er neu von "nicht abgesagt" auf "abgesagt" gewechselt ist.
-      if (isCancelled && !wasCancelled && previous.has(lesson.id)) {
-        const subject =
-          lesson.su?.map((s) => s.longname).join(', ') ?? 'Unterricht';
-        const date = moment(lesson.date.toString(), 'YYYYMMDD').format(
-          'DD.MM.YYYY',
-        );
-        const t = String(lesson.startTime).padStart(4, '0');
-        const time = `${t.slice(0, -2)}:${t.slice(-2)}`;
+      const date = moment(lesson.date.toString(), 'YYYYMMDD').format(
+        'DD.MM.YYYY',
+      );
+      const t = String(lesson.startTime).padStart(4, '0');
+      const time = `${t.slice(0, -2)}:${t.slice(-2)}`;
 
-        await this.ntfyService.send(
-          `❌ ${subject} entfällt`,
-          `${subject} am ${date} um ${time} Uhr wurde abgesagt.`,
-        );
+      const wasCancelled = prev.code === 'cancelled';
+      const isCancelled = snapshot.code === 'cancelled';
+
+      if (isCancelled && !wasCancelled) {
+        if (notifyOnCancel) {
+          await this.ntfyService.send(
+            `❌ ${snapshot.title} entfällt`,
+            `${snapshot.title} am ${date} um ${time} Uhr wurde abgesagt.`,
+          );
+        }
+        continue; // Bei Absage andere Änderungen nicht zusätzlich melden
+      }
+
+      if (!isCancelled) {
+        if (notifyOnRoomChange && prev.rooms !== snapshot.rooms) {
+          await this.ntfyService.send(
+            `🚪 Raumänderung: ${snapshot.title}`,
+            `${snapshot.title} am ${date} um ${time} Uhr: ${prev.rooms || 'kein Raum'} → ${snapshot.rooms || 'kein Raum'}`,
+          );
+        }
+
+        if (notifyOnTitleChange && prev.title !== snapshot.title) {
+          await this.ntfyService.send(
+            `✏️ Änderung: ${prev.title}`,
+            `„${prev.title}" am ${date} um ${time} Uhr wurde zu „${snapshot.title}" geändert.`,
+          );
+        }
       }
     }
 
