@@ -38,20 +38,13 @@ export class NotificationsService implements OnApplicationBootstrap {
   }
 
   private registerCronJob() {
-    const intervalMinutes = this.configService.get<number>(
-      'NOTIFY_CHECK_INTERVAL_MINUTES',
-      5,
+    const cronExpression = this.configService.get<string>(
+      'NOTIFY_CRON_EXPRESSION',
+      '*/5 6-22 * * *',
     );
-    const startHour = this.configService.get<number>(
-      'NOTIFY_CHECK_START_HOUR',
-      6,
-    );
-    const endHour = this.configService.get<number>('NOTIFY_CHECK_END_HOUR', 22);
-
-    const cronExpression = `*/${intervalMinutes} ${startHour}-${endHour} * * *`;
 
     this.logger.log(
-      `Registriere Check: alle ${intervalMinutes} Min., ${startHour}:00–${endHour}:00 Uhr (Cron: "${cronExpression}")`,
+      `Registriere Check mit Cron-Expression: "${cronExpression}"`,
     );
 
     const job = new CronJob(cronExpression, () => this.checkForCancellations());
