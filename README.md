@@ -41,7 +41,7 @@ To deploy a quick Docker environment, fill in the target school credentials in `
 | NTFY_URL | string | `null` | ntfy URL like https://ntfy.xxx.de/untis |
 | NTFY_TOKEN | string | `null` | ntfy token for authentication |
 | NOTIFY_CLASS_IDS | string | `null` | Classes IDs comma seperated |
-| NOTIFY_CHECK_INTERVAL_MINUTES | number | 5 | ntfy Intervall minutes |
+| NOTIFY_CRON_EXPRESSION | string |  '*/5 7-22 * * *'  | ntfy cron interval |
 | NOTIFY_CHECK_START_HOUR | number | 6 | ntfy check start hour |
 | NOTIFY_CHECK_END_HOUR | number | 22 | ntfy check atop hour |
 | NOTIFY_ON_CANCEL | string | 'true' | Activate on cancellation |
