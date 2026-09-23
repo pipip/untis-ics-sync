@@ -7,10 +7,13 @@ import { LessonsModule } from './lessons/lessons.module';
 import { HolidaysModule } from './holidays/holidays.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { BullModule } from '@nestjs/bull';
+import { ScheduleModule } from '@nestjs/schedule';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -28,6 +31,7 @@ import { BullModule } from '@nestjs/bull';
     LessonsModule,
     HolidaysModule,
     MetricsModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}

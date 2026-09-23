@@ -12,6 +12,9 @@ services:
       UNTIS_BASEURL:
       BULL_REDIS_HOST: redis
       BULL_REDIS_PORT: 6379
+      NTFY_URL: https://ntfy.dein-server.de/untis-absagen
+      NTFY_TOKEN: dein-ntfy-access-token
+      NOTIFY_CLASS_IDS: 123 # deine classId(s), Komma-getrennt bei mehreren
     ports:
       - 3000:3000
     networks:
