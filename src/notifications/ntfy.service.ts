@@ -12,22 +12,28 @@ export class NtfyService {
     const token = this.configService.get<string>('NTFY_TOKEN');
 
     if (!url) {
-      this.logger.warn(
-        'NTFY_URL ist nicht gesetzt, überspringe Benachrichtigung.',
-      );
+      this.logger.warn('NTFY_URL ist nicht gesetzt, überspringe Benachrichtigung.');
       return;
     }
 
+    const parsed = new URL(url);
+    const topic = parsed.pathname.replace(/^\//, '');
+    const baseUrl = `${parsed.protocol}//${parsed.host}`;
+
     try {
-      const response = await fetch(url, {
+      const response = await fetch(baseUrl, {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          Title: title,
-          Priority: 'high',
-          Tags: 'x,calendar',
         },
-        body: message,
+        body: JSON.stringify({
+          topic,
+          title,
+          message,
+          priority: 4,
+          tags: ['x', 'calendar'],
+        }),
       });
 
       if (!response.ok) {
