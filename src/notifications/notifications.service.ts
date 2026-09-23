@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { SchedulerRegistry } from '@nestjs/schedule';
+import { CronJob } from 'cron';
 import { ConfigService } from '@nestjs/config';
 import * as moment from 'moment';
 import { UntisService } from 'src/untis/untis.service';
@@ -15,11 +16,13 @@ export class NotificationsService implements OnApplicationBootstrap {
     private readonly configService: ConfigService,
     private readonly untisService: UntisService,
     private readonly ntfyService: NtfyService,
+    private readonly schedulerRegistry: SchedulerRegistry,
   ) {}
 
   async onApplicationBootstrap() {
-    const classIds = this.getConfiguredClassIds();
+    this.registerCronJob();
 
+    const classIds = this.getConfiguredClassIds();
     await this.ntfyService.send(
       '✅ untis-ics-sync gestartet',
       classIds.length > 0
@@ -28,7 +31,29 @@ export class NotificationsService implements OnApplicationBootstrap {
     );
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  private registerCronJob() {
+    const intervalMinutes = this.configService.get<number>(
+      'NOTIFY_CHECK_INTERVAL_MINUTES',
+      5,
+    );
+    const startHour = this.configService.get<number>(
+      'NOTIFY_CHECK_START_HOUR',
+      6,
+    );
+    const endHour = this.configService.get<number>('NOTIFY_CHECK_END_HOUR', 22);
+
+    // Minute Stunde Tag Monat Wochentag
+    const cronExpression = `*/${intervalMinutes} ${startHour}-${endHour} * * *`;
+
+    this.logger.log(
+      `Registriere Absagen-Check: alle ${intervalMinutes} Min., ${startHour}:00–${endHour}:00 Uhr (Cron: "${cronExpression}")`,
+    );
+
+    const job = new CronJob(cronExpression, () => this.checkForCancellations());
+    this.schedulerRegistry.addCronJob('cancellation-check', job);
+    job.start();
+  }
+
   async checkForCancellations() {
     const classIds = this.getConfiguredClassIds();
 
