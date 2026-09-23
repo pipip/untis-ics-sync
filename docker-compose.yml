@@ -15,9 +15,7 @@ services:
       NTFY_URL: https://ntfy.dein-server.de/untis-absagen
       NTFY_TOKEN: dein-ntfy-access-token
       NOTIFY_CLASS_IDS: 123
-      NOTIFY_CHECK_INTERVAL_MINUTES: 5
-      NOTIFY_CHECK_START_HOUR: 6
-      NOTIFY_CHECK_END_HOUR: 22
+      NOTIFY_CRON_EXPRESSION: '*/5 7-22 * * *'
       NOTIFY_ON_CANCEL: 'true'
       NOTIFY_ON_ROOM_CHANGE: 'true'
       NOTIFY_ON_TITLE_CHANGE: 'true'
