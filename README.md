@@ -8,8 +8,8 @@ Serves a calendar API (ICS) for events provided from Untis.
 
 ## Fixes in this repo
 - Fix "Doppelstunden" (make sure start is before end time)
-- Add cancelled status to events
-- Add ntfy push notification for cancelled class
+- Add cancelled status to lessons
+- Add ntfy push notification for cancelled lessons
 
 
 ## Use case
