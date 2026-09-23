@@ -9,7 +9,7 @@ Serves a calendar API (ICS) for events provided from Untis.
 ## Fixes in this repo
 - Fix "Doppelstunden" (make sure start is before end time)
 - Add cancelled status to lessons
-- Add ntfy push notification for cancelled lessons
+- Add ntfy push notification for cancelled AMD changed lessons
 
 
 ## Use case
@@ -44,6 +44,10 @@ To deploy a quick Docker environment, fill in the target school credentials in `
 | NOTIFY_CHECK_INTERVAL_MINUTES | number | 5 | ntfy Intervall minutes |
 | NOTIFY_CHECK_START_HOUR | number | 6 | ntfy check start hour |
 | NOTIFY_CHECK_END_HOUR | number | 22 | ntfy check atop hour |
+| NOTIFY_ON_CANCEL | string | 'true' | Activate on cancellation |
+| NOTIFY_ON_ROOM_CHANGE | string | 'true' | Activate on room change |
+| NOTIFY_ON_TITLE_CHANGE | string | 'true' | Activate on title change |
+
 
 ## API Documentation
 
