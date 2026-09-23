@@ -56,7 +56,7 @@ export class LessonsService {
             last.code === curr.code && // do not merge cancelled events
             gap !== null &&
             gap >= 0 &&
-            gap <= 5   // Toleranz 5 Min
+            gap <= 5 // Toleranz 5 Min
           ) {
             last.endTime = curr.endTime;
             return acc;
@@ -79,42 +79,44 @@ export class LessonsService {
           start: WebUntis.convertUntisTime(l.startTime, l.date),
           end: WebUntis.convertUntisTime(l.endTime, l.date),
         }))
-        .map(
-          (l) => {
-            const prefix = l.code === 'cancelled' ? '❌ ' : l.code === 'irregular' ? '⚠️ ' : '';
+        .map((l) => {
+          const prefix =
+            l.code === 'cancelled'
+              ? '❌ '
+              : l.code === 'irregular'
+                ? '⚠️ '
+                : '';
 
-            return {
-              uid: l.id.toString(),
-              title:
-                prefix +
-                ((l.lstext
-                  ? `${l.su?.map((s) => s.longname).join(', ')} (${l.lstext})`
-                  : l.su?.map((s) => s.longname).join(', ')) ??
-                  'Unnamed lesson'),
+          return {
+            uid: l.id.toString(),
+            title:
+              prefix +
+              ((l.lstext
+                ? `${l.su?.map((s) => s.longname).join(', ')} (${l.lstext})`
+                : l.su?.map((s) => s.longname).join(', ')) ?? 'Unnamed lesson'),
 
-              description: this.buildDescription(l),
-              location: this.buildLocation(l),
+            description: this.buildDescription(l),
+            location: this.buildLocation(l),
 
-              status: l.code === 'cancelled' ? 'CANCELLED' : undefined,
+            status: l.code === 'cancelled' ? 'CANCELLED' : undefined,
 
-              alarms: alarms?.map((minutes) => ({
-                trigger: {
-                  minutes,
-                  before: true,
-                },
-                action: 'display',
-              })),
+            alarms: alarms?.map((minutes) => ({
+              trigger: {
+                minutes,
+                before: true,
+              },
+              action: 'display',
+            })),
 
-              start: this.convertDate(l.start, offset),
-              startInputType: 'local',
-              startOutputType: 'utc',
+            start: this.convertDate(l.start, offset),
+            startInputType: 'local',
+            startOutputType: 'utc',
 
-              end: this.convertDate(l.end, offset),
-              endInputType: 'local',
-              endOutputType: 'utc',
-            } as EventAttributes;
-          },
-        )
+            end: this.convertDate(l.end, offset),
+            endInputType: 'local',
+            endOutputType: 'utc',
+          } as EventAttributes;
+        })
         .concat([this.createMaintenanceEvent()])
         .filter((e) => e),
     );
