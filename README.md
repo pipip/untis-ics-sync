@@ -1,6 +1,6 @@
 # ⏰ untis-ics-sync
 
-[![Node CI](https://github.com/bddvlpr/untis-ics-sync/actions/workflows/node-ci.yaml/badge.svg)](https://github.com/bddvlpr/untis-ics-sync/actions/workflows/node-ci.yaml) [![Docker CD](https://github.com/bddvlpr/untis-ics-sync/actions/workflows/docker-cd.yaml/badge.svg)](https://github.com/bddvlpr/untis-ics-sync/actions/workflows/docker-cd.yaml)
+[![Node CI](https://github.com/pipip/untis-ics-sync/actions/workflows/node-ci.yaml/badge.svg)](https://github.com/pipip/untis-ics-sync/actions/workflows/node-ci.yaml) [![Docker CD](https://github.com/pipip/untis-ics-sync/actions/workflows/docker-cd.yaml/badge.svg)](https://github.com/pipip/untis-ics-sync/actions/workflows/docker-cd.yaml)
 
 Serves a calendar API (ICS) for events provided from Untis.
 
