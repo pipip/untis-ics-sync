@@ -40,7 +40,7 @@ export class NotificationsService implements OnApplicationBootstrap {
   private registerCronJob() {
     const cronExpression = this.configService.get<string>(
       'NOTIFY_CRON_EXPRESSION',
-      '*/5 6-22 * * *',
+      '*/5 7-8 * * 1-5',
     );
 
     this.logger.log(
